@@ -32,6 +32,12 @@ app.use('/ads', adRoutes);
  
 const adminRoutes = require('./routes/admin');
 app.use('/admin', adminRoutes);
- 
+
+// Globales Error-Logging
+app.use((err, req, res, next) => {
+  console.error('🌍 Globaler Fehler:', err);
+  res.status(500).json({ error: 'Interner Serverfehler' });
+});
+
 // 👉 Wichtig: Kein app.listen hier!
 module.exports = app;
