@@ -54,6 +54,11 @@ router.post('/register', async (req, res) => {
   }
 });
 
+router.post('/debug', (req, res) => {
+  console.log('🐞 Debug-Body:', req.body);
+  res.json({ received: req.body });
+});
+
 //Nutzer einloggen
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
