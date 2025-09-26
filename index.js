@@ -15,6 +15,11 @@ app.listen(3000, () => {
   console.log('Server läuft auf Port 3000');
 });
 
+//Health-Check-Endpunkt
+app.get('/health', (req, res) => {
+  res.status(200).send('OK');
+});
+
 //Routen einbinden
 const authRoutes = require('./routes/auth');
 app.use('/auth', authRoutes);
