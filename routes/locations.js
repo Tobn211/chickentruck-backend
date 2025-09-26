@@ -17,8 +17,6 @@ router.get('/today', authenticateToken, async (req, res) => {
   res.json(data);
 });
 
-module.exports = router;
-
 //API-Endpunkt /locations/by-date/:date
 router.get('/by-date/:date', authenticateToken, async (req, res) => {
   const { date } = req.params;
@@ -32,3 +30,5 @@ router.get('/by-date/:date', authenticateToken, async (req, res) => {
 
   res.json(data);
 });
+
+module.exports = router;

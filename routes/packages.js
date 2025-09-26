@@ -14,8 +14,6 @@ router.get('/', authenticateToken, async (req, res) => {
   res.json(data);
 });
 
-module.exports = router
-
 //API-Endpunkt /packages/purchase
 router.post('/purchase', authenticateToken, async (req, res) => {
   const { package_id, amount } = req.body;
@@ -34,3 +32,5 @@ router.post('/purchase', authenticateToken, async (req, res) => {
 
   res.json({ message: 'Paket erfolgreich gebucht', payment: data[0] });
 });
+
+module.exports = router;

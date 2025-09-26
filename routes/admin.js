@@ -29,3 +29,5 @@ router.post('/operators/approve', authenticateToken, async (req, res) => {
 
   res.json({ message: 'Betreiber verifiziert', operator: data[0] });
 });
+
+module.exports = router;
