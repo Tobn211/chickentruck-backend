@@ -35,14 +35,16 @@ router.post('/register', async (req, res) => {
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
  
-    const { data, error } = await supabase
-      .from('users')
-      .insert([{ email, password: hashedPassword }]);
+const { data, error } = await supabase
+  .from('users')
+  .insert([{ email, password: hashedPassword }]);
  
-    if (error) {
-      console.error('❌ Supabase-Fehler:', error.message);
-      return res.status(400).json({ error: error.message });
-    }
+console.log('📦 Supabase-Antwort:', data); // ← NEU
+ 
+if (error) {
+  console.error('❌ Supabase-Fehler:', error.message);
+  return res.status(400).json({ error: error.message });
+}
  
     const token = jwt.sign({ id: data[0].id }, process.env.JWT_SECRET, { expiresIn: '1h' });
  
