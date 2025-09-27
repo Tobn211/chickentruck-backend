@@ -1,28 +1,40 @@
 name: CI/CD for ChickenTruck Backend (Supabase)
+ 
 on:
   push:
-    branches:
-      - master
+    branches: [ master ]
   pull_request:
-    branches:
-      - master
+    branches: [ master ]
+ 
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-    env:
-      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-      SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_KEY }}
-      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+    permissions:
+      contents: read  # Minimalprinzip
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+ 
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'     # Node 18 ist inzwischen EOL; 20 LTS oder 22 LTS
+          cache: 'npm'
+ 
       - name: Install dependencies
-        run: npm install
-        working-directory: .
-      - name: Run tests
+        run: npm ci              # reproduzierbare Installs im CI
+ 
+      # Variante A: RLS-konforme Tests (Client-Scope)
+      - name: Run tests (client scope)
         run: npm test || echo "No tests defined"
-        working-directory: .
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+ 
+      # Variante B: Admin/Seeding/Bypass-RLS (nur falls benötigt)
+      # - name: Seed / admin tests
+      #   run: npm run test:admin
+      #   env:
+      #     SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      #     SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
