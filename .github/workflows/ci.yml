@@ -22,7 +22,7 @@ jobs:
           node-version: '18'
       - name: Install dependencies
         run: npm install
-        working-directory: ./api_backend
+        working-directory: .
       - name: Run tests
         run: npm test || echo "No tests defined"
-        working-directory: ./api_backend
+        working-directory: .
