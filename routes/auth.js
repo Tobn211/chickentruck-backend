@@ -7,17 +7,19 @@ const supabase = require('../services/supabaseClient');
 
 router.post('/register', async (req, res) => {
   const { email, password } = req.body;
-
   const hashedPassword = await bcrypt.hash(password, 10);
-
+ 
   const { data, error } = await supabase
     .from('users')
-    .insert([{ email, password: hashedPassword }]);
-
-  if (error) return res.status(400).json({ error: error.message });
-
+    .insert([{ email, password: hashedPassword }])
+    .select(); // ← wichtig, damit Supabase die Daten zurückgibt
+ 
+  if (error || !data || !data[0]) {
+    console.error('❌ Supabase Insert Error:', error);
+    return res.status(400).json({ error: error?.message || 'Registrierung fehlgeschlagen' });
+  }
+ 
   const token = jwt.sign({ id: data[0].id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-
   res.json({ token });
 });
 
