@@ -28,6 +28,14 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        // ...
+        // Lies den Key aus local.properties
+        def mapsApiKey = project.findProperty("MAPS_API_KEY") ?: ""
+        manifestPlaceholders += [ MAPS_API_KEY: mapsApiKey ]
+ 
+        // Optional: Build abbrechen, wenn leer
+        if (!mapsApiKey) {
+            throw new GradleException("MAPS_API_KEY fehlt. Bitte in android/local.properties setzen.")
     }
 
     buildTypes {
