@@ -1,18 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
  
 import 'login_screen.dart';
 import 'register_screen.dart';
  
-void main() async {
-  // Stellt sicher, dass Flutter vollständig initialisiert ist, bevor Supabase geladen wird
+Future<void> main() async {
+  // Flutter-Engine bereit machen
   WidgetsFlutterBinding.ensureInitialized();
  
-  // Supabase initialisieren – hier deine echten Projektwerte eintragen
+  // 1) .env laden (lokale Entwicklung)
+  //    Für CI/Prod besser: --dart-define (siehe Kommentar weiter unten)
+  await dotenv.load(fileName: ".env");
+ 
+  // 2) Supabase initialisieren – Werte aus .env
+  final supabaseUrl = dotenv.env['SUPABASE_URL'];
+  final supabaseAnon = dotenv.env['SUPABASE_KEY'];
+ 
+  if (supabaseUrl == null || supabaseAnon == null) {
+    // Fail fast mit klarer Meldung
+    throw StateError(
+      'SUPABASE_URL oder SUPABASE_ANON_KEY fehlen. '
+      'Prüfe deine .env oder deine --dart-define Übergaben.',
+    );
+  }
+ 
   await Supabase.initialize(
-    url: 'https://dpkwakwpawjrpabrfeci.supabase.co', // ← Supabase-URL
-    anonKey:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwa3dha3dwYXdqcnBhYnJmZWNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUxOTQ3MDMsImV4cCI6MjA3MDc3MDcwM30.kGiaYbao0fuA0SACYOsnPgXmXD2LlQUtx3xX1G1mwnA', // ← öffentlicher Supabase-Key
+    url: supabaseUrl,
+    anonKey: supabaseAnon,
   );
  
   runApp(const MyApp());
@@ -66,15 +81,15 @@ class MyHomePage extends StatefulWidget {
 }
  
 class _MyHomePageState extends State<MyHomePage> {
-  // Optional: Counter aus dem Template – kannst du auch entfernen
+  // Demo-Zähler
   int _counter = 0;
  
-  void _incrementCounter() {
-    setState(() => _counter++);
-  }
+  void _incrementCounter() => setState(() => _counter++);
  
   @override
   Widget build(BuildContext context) {
+    final url = dotenv.env['SUPABASE_URL'] ?? 'n/a';
+ 
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
@@ -86,10 +101,15 @@ class _MyHomePageState extends State<MyHomePage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              // Kleiner Infotext (optional)
               Text(
                 'Willkommen bei ChickenTruck!',
                 style: Theme.of(context).textTheme.titleLarge,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Supabase URL: $url',
+                style: Theme.of(context).textTheme.bodySmall,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
@@ -108,12 +128,8 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
  
               const SizedBox(height: 24),
-              // Der frühere Counter bleibt funktionsfähig (kannst du jederzeit entfernen)
               const Text('Demo-Zähler:'),
-              Text(
-                '$_counter',
-                style: Theme.of(context).textTheme.headlineMedium,
-              ),
+              Text('$_counter', style: Theme.of(context).textTheme.headlineMedium),
             ],
           ),
         ),

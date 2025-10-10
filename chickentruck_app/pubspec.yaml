@@ -38,7 +38,10 @@ dependencies:
   # Supabase Flutter client
   supabase_flutter: ^2.10.2
 
-# Add the Google Maps Flutter plugin
+  # Flutter dontenv:
+  flutter_dotenv: ^6.0.0
+
+  # Add the Google Maps Flutter plugin
   google_maps_flutter: ^2.5.0
 
 dev_dependencies:
