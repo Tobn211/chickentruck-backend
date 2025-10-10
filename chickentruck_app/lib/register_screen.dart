@@ -13,23 +13,67 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   String message = '';
+  bool loading = false;
  
   Future<void> register() async {
-    final response = await supabase.auth.signUp(
-      email: emailController.text,
-      password: passwordController.text,
-    );
+    setState(() {
+      loading = true;
+      message = '';
+    });
  
-    if (response.user != null) {
+    final email = emailController.text.trim();
+    final password = passwordController.text;
+ 
+    if (email.isEmpty || password.isEmpty) {
       setState(() {
-        message = '✅ Registrierung erfolgreich!';
+        loading = false;
+        message = '❌ Bitte E‑Mail und Passwort eingeben.';
       });
-      // Beispiel: Weiterleitung zur Startseite
-      // Navigator.push(context, MaterialPageRoute(builder: (_) => const MyHomePage(title: 'Startseite')));
-    } else {
+      return;
+    }
+ 
+    try {
+      final res = await supabase.auth.signUp(
+        email: email,
+        password: password,
+        // Optional: Metadaten mitschicken
+        // data: {'username': 'tobias_sauer'},
+      );
+ 
+      final user = res.user;
+      final session = res.session;
+ 
+      if (user != null && session == null) {
+        // "Confirm email" ist aktiv -> Mail zur Bestätigung versendet
+        setState(() {
+          message = '✅ Registrierung erfolgreich! Bitte E‑Mail bestätigen.';
+        });
+        // Optional: zu einer "Check your e‑mail"-Seite navigieren
+        // Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const ConfirmEmailScreen()));
+      } else if (user != null && session != null) {
+        // Direkt eingeloggt (Confirm email deaktiviert)
+        setState(() {
+          message = '✅ Registrierung & Login erfolgreich!';
+        });
+        // Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const MyHomePage(title: 'Startseite')));
+      } else {
+        // Unerwarteter Zustand (defensiv)
+        setState(() {
+          message = '⚠️ Unerwarteter Zustand: Kein Benutzer/keine Session.';
+        });
+      }
+    } on AuthException catch (e) {
+      // Supabase-Auth-Fehler (z. B. "User already registered", 422, 429, …)
       setState(() {
-        message = '❌ Fehler: ${response.error?.message}';
+        message = '❌ ${e.message}';
       });
+    } catch (e) {
+      // Andere Fehler (Netzwerk etc.)
+      setState(() {
+        message = '❌ Unerwarteter Fehler: $e';
+      });
+    } finally {
+      if (mounted) setState(() => loading = false);
     }
   }
  
@@ -43,7 +87,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
           children: [
             TextField(
               controller: emailController,
-              decoration: const InputDecoration(labelText: 'E-Mail'),
+              decoration: const InputDecoration(labelText: 'E‑Mail'),
+              keyboardType: TextInputType.emailAddress,
             ),
             TextField(
               controller: passwordController,
@@ -52,8 +97,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ),
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: register,
-              child: const Text('Registrieren'),
+              onPressed: loading ? null : register,
+              child: Text(loading ? 'Bitte warten…' : 'Registrieren'),
             ),
             const SizedBox(height: 20),
             Text(message),

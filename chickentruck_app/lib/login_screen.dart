@@ -13,23 +13,43 @@ class _LoginScreenState extends State<LoginScreen> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   String message = '';
+  bool loading = false;
  
   Future<void> login() async {
-    final response = await supabase.auth.signInWithPassword(
-      email: emailController.text,
-      password: passwordController.text,
-    );
+    setState(() {
+      loading = true;
+      message = '';
+    });
  
-    if (response.user != null) {
+    final email = emailController.text.trim();
+    final password = passwordController.text;
+ 
+    if (email.isEmpty || password.isEmpty) {
       setState(() {
-        message = '✅ Login erfolgreich!';
+        loading = false;
+        message = '❌ Bitte E‑Mail und Passwort eingeben.';
       });
-      // Weiterleitung zur Startseite
-      // Navigator.push(context, MaterialPageRoute(builder: (_) => const MyHomePage(title: 'Startseite')));
-    } else {
-      setState(() {
-        message = '❌ Fehler: ${response.error?.message}';
-      });
+      return;
+    }
+ 
+    try {
+      final res = await supabase.auth.signInWithPassword(
+        email: email,
+        password: password,
+      );
+ 
+      if (res.session != null && res.user != null) {
+        setState(() => message = '✅ Login erfolgreich!');
+        // TODO: Navigator.push(...);
+      } else {
+        setState(() => message = '⚠️ Unerwarteter Zustand: Keine Session.');
+      }
+    } on AuthException catch (e) {
+      setState(() => message = '❌ ${e.message}');
+    } catch (e) {
+      setState(() => message = '❌ Unerwarteter Fehler: $e');
+    } finally {
+      if (mounted) setState(() => loading = false);
     }
   }
  
@@ -44,6 +64,7 @@ class _LoginScreenState extends State<LoginScreen> {
             TextField(
               controller: emailController,
               decoration: const InputDecoration(labelText: 'E-Mail'),
+              keyboardType: TextInputType.emailAddress,
             ),
             TextField(
               controller: passwordController,
@@ -52,8 +73,8 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: login,
-              child: const Text('Einloggen'),
+              onPressed: loading ? null : login,
+              child: Text(loading ? 'Bitte warten…' : 'Einloggen'),
             ),
             const SizedBox(height: 20),
             Text(message),
